@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>帅哥估值</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── CONFIG: set your GitHub username here ── */
+:root {
+  --gh-user: "YOUR_GITHUB_USERNAME"; /* <-- 修改这里 */
+  --bg:#f2f2f7;--card:#fff;--inp:rgba(120,120,128,.12);--inp2:rgba(120,120,128,.08);
+  --l1:#000;--l2:rgba(60,60,67,.6);--l3:rgba(60,60,67,.3);--l4:rgba(60,60,67,.18);
+  --sep:rgba(60,60,67,.12);--sep2:rgba(60,60,67,.06);
+  --blue:#007aff;--green:#34c759;--red:#ff3b30;--orange:#ff9500;
+  --up:#ff3b30;--dn:#34c759;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans SC',-apple-system,sans-serif;background:var(--bg);color:var(--l1);min-height:100vh;max-width:430px;margin:0 auto;-webkit-font-smoothing:antialiased}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;background:rgba(242,242,247,.92);backdrop-filter:blur(20px);border-bottom:.5px solid var(--sep);position:sticky;top:0;z-index:100}
+.nb-l{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(145deg,#007aff,#0044cc);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,122,255,.3)}
+.logo svg{width:20px;height:20px}
+.logo-name{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.logo-sub{font-size:9px;font-weight:600;color:var(--blue);letter-spacing:1.5px}
+.nb-r{display:flex;align-items:center;gap:8px}
+.ic-btn{width:32px;height:32px;border-radius:50%;background:var(--inp);border:none;color:var(--blue);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.ic-btn:active{transform:scale(.88)}
+.btn-add{background:var(--blue);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,122,255,.3)}
+.btn-add:active{transform:scale(.94);opacity:.85}
+.hero{margin:12px 12px 0;border-radius:24px;background:linear-gradient(150deg,#1c6ef3,#0a4fd4,#6a3de8);padding:22px 20px 20px;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(0,78,196,.25)}
+.hero::before{content:'';position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08);top:-70px;right:-50px;pointer-events:none}
+.hero-lbl{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:4px}
+.hero-amt{font-size:40px;font-weight:700;color:#fff;letter-spacing:-1.5px;margin-bottom:16px;line-height:1}
+.hero-amt sup{font-size:20px;font-weight:500;opacity:.8;vertical-align:super;margin-right:2px}
+.hero-chips{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hchip{background:rgba(0,0,0,.18);border-radius:14px;padding:12px 14px;backdrop-filter:blur(10px)}
+.hchip-l{font-size:11px;color:rgba(255,255,255,.65);margin-bottom:5px}
+.hchip-v{font-size:20px;font-weight:700;color:#fff;line-height:1.1}
+.hchip-p{font-size:12px;color:rgba(255,255,255,.75);margin-top:3px}
+.update-bar{background:rgba(0,0,0,.12);border-radius:8px;padding:4px 10px;margin:8px 12px 0;font-size:11px;color:rgba(255,255,255,.6);text-align:center}
+.pills{display:flex;gap:6px;padding:12px 12px 4px;overflow-x:auto;scrollbar-width:none}
+.pills::-webkit-scrollbar{display:none}
+.pill{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;border:none;background:var(--card);color:var(--l2);cursor:pointer;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.pill.on{background:var(--blue);color:#fff}
+.sort-bar{display:flex;margin:8px 12px 0;background:var(--card);border-radius:12px;padding:3px;gap:2px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stab{flex:1;text-align:center;padding:8px 4px;font-size:12px;font-weight:500;color:var(--l2);cursor:pointer;border-radius:9px;white-space:nowrap}
+.stab.on{background:var(--blue);color:#fff;font-weight:600}
+.flist{padding:10px 12px 100px;display:flex;flex-direction:column;gap:10px}
+.fcard{background:var(--card);border-radius:18px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);cursor:pointer;position:relative;border:.5px solid rgba(0,0,0,.04)}
+.fcard:active{transform:scale(.98)}
+.fcard::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 2px 2px 0;background:var(--l4)}
+.fcard.cup::before{background:var(--up)}.fcard.cdn::before{background:var(--dn)}
+.fc-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px}
+.fc-name{font-size:14px;font-weight:600;line-height:1.45;flex:1;padding-right:8px}
+.fc-tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;white-space:nowrap;background:rgba(52,199,89,.12);color:var(--green);flex-shrink:0}
+.fc-tag.est{background:rgba(255,149,0,.12);color:var(--orange)}
+.fc-tag.ing{background:rgba(88,86,214,.12);color:#5856d6}
+.fc-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--l3);margin-bottom:12px}
+.fc-meta .ch{color:var(--blue);font-weight:500}
+.fc-acts{display:flex;gap:4px;margin-left:auto}
+.fc-act{width:26px;height:26px;border-radius:8px;background:var(--inp2);border:.5px solid var(--sep);color:var(--l2);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fc-act.del{color:var(--red);background:rgba(255,59,48,.08)}
+.fc-stats{display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:10px}
+.fcs-l{font-size:10px;color:var(--l3);margin-bottom:3px}
+.fcs-v{font-size:14px;font-weight:600}
+.fc-nav{display:flex;align-items:center;gap:6px;padding-top:10px;border-top:.5px solid var(--sep2);font-size:11px;color:var(--l3)}
+.fc-nav .est{color:var(--orange);font-weight:600}
+.fc-ref{margin-left:auto;background:none;border:none;color:var(--l3);font-size:14px;cursor:pointer;padding:0}
+.up{color:var(--up)}.dn{color:var(--dn)}.neu{color:var(--l2)}
+.empty{text-align:center;padding:60px 24px;display:flex;flex-direction:column;align-items:center}
+.empty-ic{font-size:48px;margin-bottom:16px}
+.empty-t{font-size:17px;font-weight:600;margin-bottom:6px}
+.empty-s{font-size:14px;color:var(--l2);line-height:1.6}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;backdrop-filter:blur(6px);align-items:flex-end;justify-content:center}
+.ov.show{display:flex;animation:foi .2s ease}
+@keyframes foi{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:0 16px 36px;max-height:93vh;overflow-y:auto;animation:sup .3s cubic-bezier(.22,.84,.36,1)}
+@keyframes sup{from{transform:translateY(48px);opacity:0}to{transform:translateY(0);opacity:1}}
+.sh-h{width:40px;height:4px;border-radius:2px;background:var(--inp);margin:10px auto 0}
+.sh-t{font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px}
+.sh-x{width:28px;height:28px;border-radius:50%;background:var(--inp);border:none;color:var(--l2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.ff{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:12px;color:var(--l2);font-weight:500}
+.fi{background:var(--inp);border:none;border-radius:10px;padding:11px 13px;font-size:16px;color:var(--l1);font-family:inherit;outline:none;width:100%;-webkit-appearance:none}
+.fi:focus{background:rgba(0,122,255,.08);box-shadow:0 0 0 2px rgba(0,122,255,.2)}
+.fi::placeholder{color:var(--l3)}
+.fi[readonly]{color:var(--l2)}
+.lkp{min-height:48px;border-radius:10px;background:var(--inp2);padding:10px 13px;margin-bottom:14px;font-size:13px;color:var(--l2);line-height:1.6}
+.lkp.ok{background:rgba(52,199,89,.08);color:#1a7a35}
+.lkp.err{background:rgba(255,59,48,.08);color:var(--red)}
+.lkp.ing{color:#5856d6}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--inp);border-radius:10px;padding:2px;gap:2px;margin-bottom:16px}
+.sb{border:none;background:transparent;border-radius:8px;padding:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--l2)}
+.sb.on{background:var(--card);color:var(--l1);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.amt-row{position:relative;margin-bottom:6px}
+.amt-pfx{position:absolute;left:0;top:50%;transform:translateY(-50%);color:var(--red);font-size:20px;font-weight:600}
+.amt-in{width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--sep);padding:8px 0 8px 22px;font-size:30px;font-weight:700;color:var(--red);font-family:inherit;outline:none;-webkit-appearance:none}
+.amt-hint{font-size:12px;color:var(--l3);margin-top:4px;margin-bottom:18px}
+.ch-t{font-size:13px;font-weight:600;color:var(--l2);margin-bottom:9px}
+.ch-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px}
+.chb{border:.5px solid var(--sep);background:var(--inp2);border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--l2)}
+.chb.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-m{width:100%;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,122,255,.25)}
+.btn-m:disabled{opacity:.4;cursor:not-allowed}
+.btn2{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.btn-del{background:rgba(255,59,48,.1);color:var(--red);border:.5px solid rgba(255,59,48,.2);border-radius:12px;padding:15px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+.det-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;backdrop-filter:blur(8px);align-items:flex-end;justify-content:center}
+.det-ov.show{display:flex;animation:foi .2s ease}
+.det-sh{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:0 16px 36px;max-height:94vh;overflow-y:auto;animation:sup .3s cubic-bezier(.22,.84,.36,1)}
+.skel{background:var(--inp);border-radius:8px;animation:sp 1.2s ease infinite}
+@keyframes sp{0%,100%{opacity:.4}50%{opacity:.9}}
+.sec{font-size:11px;font-weight:700;color:var(--l3);letter-spacing:.8px;margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:.5px;background:var(--sep)}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gc{background:var(--bg);border-radius:10px;padding:12px 10px;text-align:center}
+.gc-l{font-size:10px;color:var(--l3);margin-bottom:4px}
+.gc-v{font-size:16px;font-weight:700}
+.htbl{width:100%;border-collapse:collapse}
+.htbl th{font-size:11px;color:var(--l3);font-weight:500;text-align:left;padding:7px 0;border-bottom:.5px solid var(--sep)}
+.htbl td{font-size:13px;padding:10px 0;border-bottom:.5px solid var(--sep2);color:var(--l2)}
+.htbl td:nth-child(2){color:var(--l1);font-weight:600}
+.htbl td:last-child{text-align:right;font-weight:700}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ic2{background:var(--bg);border-radius:10px;padding:11px 13px}
+.ic2-l{font-size:10px;color:var(--l3);margin-bottom:3px}
+.ic2-v{font-size:13px;font-weight:600}
+.btn-close{width:100%;background:var(--inp);color:var(--l1);border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:20px}
+.tr-g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.tr-c{background:var(--bg);border:.5px solid var(--sep);border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;display:block}
+.tr-c:active{transform:scale(.96)}
+.tr-ic{font-size:28px;margin-bottom:8px}
+.tr-t{font-size:14px;font-weight:600;margin-bottom:3px}
+.tr-d{font-size:12px;color:var(--l2)}
+.info-p{background:var(--bg);border-radius:10px;padding:14px;font-size:13px;color:var(--l2);line-height:1.9}
+.setup-banner{background:rgba(255,149,0,.1);border:1px solid rgba(255,149,0,.3);border-radius:14px;padding:16px;margin:12px 12px 0;font-size:13px;color:#7a4800;line-height:1.7}
+.setup-banner b{color:#5a3000;font-size:14px}
+.setup-banner code{background:rgba(255,149,0,.15);padding:2px 6px;border-radius:4px;font-size:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .7s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+  ⚙️  配置说明：
+  1. 将下方 GITHUB_REPO_URL 改为你的仓库 raw 地址
+     格式：https://raw.githubusercontent.com/用户名/仓库名/main
+  2. 把这个文件放到你仓库的根目录，命名为 index.html
+  完成后 GitHub Actions 每5分钟自动更新数据
+══════════════════════════════════════════════ -->
+
+<div class="nav">
+  <div class="nb-l">
+    <div class="logo">
+      <svg viewBox="0 0 20 20" fill="none">
+        <rect x="1" y="11" width="4" height="7" rx="1" fill="rgba(255,255,255,.45)"/>
+        <rect x="7" y="7" width="4" height="11" rx="1" fill="rgba(255,255,255,.7)"/>
+        <rect x="13" y="3" width="4" height="15" rx="1" fill="rgba(255,255,255,.95)"/>
+        <polyline points="2,10 8,6 14,2" stroke="#5ac8fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="2" r="1.8" fill="#5ac8fa"/>
+      </svg>
+    </div>
+    <div><div class="logo-name">帅哥估值</div><div class="logo-sub">FUND TRACKER</div></div>
+  </div>
+  <div class="nb-r">
+    <button class="ic-btn" onclick="openTr()">&#8645;</button>
+    <button class="ic-btn" id="gref" onclick="refreshAll(this)">&#8635;</button>
+    <button class="btn-add" onclick="openAdd()">+ 添加</button>
+  </div>
+</div>
+
+<div id="setup-banner" class="setup-banner" style="display:none">
+  <b>⚙️ 需要完成配置</b><br>
+  打开这个 HTML 文件，找到顶部的 <code>GITHUB_REPO_URL</code>，改为你的 GitHub 仓库地址。<br>
+  例如：<code>https://raw.githubusercontent.com/你的用户名/fund-tracker/main</code>
+</div>
+
+<div class="hero">
+  <div class="hero-lbl">预估总资产 (CNY)</div>
+  <div class="hero-amt"><sup>¥</sup><span id="hv-t">0.00</span></div>
+  <div class="hero-chips">
+    <div class="hchip"><div class="hchip-l">今日盈亏</div><div class="hchip-v" id="hv-tp">--</div><div class="hchip-p" id="hv-tpp">--%</div></div>
+    <div class="hchip"><div class="hchip-l">持有收益</div><div class="hchip-v" id="hv-tc">--</div><div class="hchip-p" id="hv-tcp">--%</div></div>
+  </div>
+</div>
+<div id="update-info" style="background:rgba(255,255,255,.15);border-radius:8px;padding:4px 10px;margin:8px 12px 0;font-size:11px;color:rgba(0,0,0,.4);text-align:center"></div>
+
+<div class="pills">
+  <button class="pill on" onclick="setP('all',this)">全部</button>
+  <button class="pill" onclick="setP('支付宝',this)">支付宝</button>
+  <button class="pill" onclick="setP('天天基金',this)">天天基金</button>
+  <button class="pill" onclick="setP('华夏基金',this)">华夏基金</button>
+  <button class="pill" onclick="setP('广发基金',this)">广发基金</button>
+</div>
+<div class="sort-bar">
+  <div class="stab on" onclick="setS('list',this)">持仓列表</div>
+  <div class="stab" onclick="setS('today',this)">今日盈亏</div>
+  <div class="stab" onclick="setS('chg',this)">今日涨幅</div>
+  <div class="stab" onclick="setS('total',this)">总盈亏</div>
+</div>
+<div class="flist" id="fl">
+  <div class="empty"><div class="empty-ic">&#128202;</div><div class="empty-t">还没有持仓</div><div class="empty-s">点击右上角「添加」开始追踪<br>数据由 GitHub Actions 自动更新</div></div>
+</div>
+
+<!-- ADD -->
+<div class="ov" id="ov-add" onclick="bgC(event,'ov-add')">
+  <div class="sheet">
+    <div class="sh-h"></div>
+    <div class="sh-t">添加基金 <button class="sh-x" onclick="closeAdd()">&#10005;</button></div>
+    <div class="f2">
+      <div class="ff"><label class="fl">基金代码</label><input class="fi" id="a-code" placeholder="000000" maxlength="6" inputmode="numeric" oninput="onCodeIn(this)"></div>
+      <div class="ff"><label class="fl">持有份额</label><input class="fi" id="a-sh" placeholder="0.00" type="number" step="0.01" inputmode="decimal"></div>
+    </div>
+    <div class="lkp" id="a-lkp">输入6位基金代码，从已缓存数据中查询</div>
+    <div class="seg">
+      <button class="sb on" id="a-sp" onclick="setSeg('a','p')">按持有收益</button>
+      <button class="sb" id="a-sc" onclick="setSeg('a','c')">按成本单价</button>
+    </div>
+    <div class="amt-row"><span class="amt-pfx">¥</span><input class="amt-in" id="a-amt" placeholder="0.00" type="number" step="0.01" inputmode="decimal"></div>
+    <div class="amt-hint" id="a-hint">系统将根据当前净值自动反算成本单价</div>
+    <div class="ch-t">购买渠道</div>
+    <div class="ch-row" id="a-pills">
+      <button class="chb on" onclick="setCh('a','支付宝',this)">支付宝</button>
+      <button class="chb" onclick="setCh('a','华夏基金',this)">华夏基金</button>
+      <button class="chb" onclick="setCh('a','广发基金',this)">广发基金</button>
+      <button class="chb" onclick="setCh('a','天天基金',this)">天天基金</button>
+    </div>
+    <button class="btn-m" id="a-save" onclick="saveH()">确认保存</button>
+  </div>
+</div>
+
+<!-- EDIT -->
+<div class="ov" id="ov-edit" onclick="bgC(event,'ov-edit')">
+  <div class="sheet">
+    <div class="sh-h"></div>
+    <div class="sh-t">编辑持仓 <button class="sh-x" onclick="closeEdit()">&#10005;</button></div>
+    <div class="f2">
+      <div class="ff"><label class="fl">基金代码</label><input class="fi" id="e-code" readonly></div>
+      <div class="ff"><label class="fl">持有份额</label><input class="fi" id="e-sh" type="number" step="0.01" inputmode="decimal"></div>
+    </div>
+    <div class="seg">
+      <button class="sb on" id="e-sp" onclick="setSeg('e','p')">按持有收益</button>
+      <button class="sb" id="e-sc" onclick="setSeg('e','c')">按成本单价</button>
+    </div>
+    <div class="amt-row"><span class="amt-pfx">¥</span><input class="amt-in" id="e-amt" type="number" step="0.01" inputmode="decimal"></div>
+    <div class="amt-hint">系统将根据当前净值自动反算成本单价</div>
+    <div class="ch-t">购买渠道</div>
+    <div class="ch-row" id="e-pills">
+      <button class="chb on" onclick="setCh('e','支付宝',this)">支付宝</button>
+      <button class="chb" onclick="setCh('e','华夏基金',this)">华夏基金</button>
+      <button class="chb" onclick="setCh('e','广发基金',this)">广发基金</button>
+      <button class="chb" onclick="setCh('e','天天基金',this)">天天基金</button>
+    </div>
+    <div class="btn2">
+      <button class="btn-del" onclick="delH()">删除</button>
+      <button class="btn-m" onclick="updateH()">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSFER -->
+<div class="ov" id="ov-tr" onclick="bgC(event,'ov-tr')">
+  <div class="sheet">
+    <div class="sh-h"></div>
+    <div class="sh-t">数据管理 <button class="sh-x" onclick="closeTr()">&#10005;</button></div>
+    <div class="tr-g">
+      <div class="tr-c" onclick="exportD()"><div class="tr-ic">&#128228;</div><div class="tr-t">导出持仓</div><div class="tr-d">下载JSON备份</div></div>
+      <label class="tr-c"><div class="tr-ic">&#128229;</div><div class="tr-t">导入持仓</div><div class="tr-d">从JSON文件恢复</div><input type="file" accept=".json" onchange="importD(event)" style="display:none"></label>
+    </div>
+    <div class="tr-g">
+      <div class="tr-c" onclick="exportHoldings()"><div class="tr-ic">&#128196;</div><div class="tr-t">同步到GitHub</div><div class="tr-d">下载holdings.json<br>上传到仓库data/</div></div>
+      <div class="tr-c" onclick="location.reload()"><div class="tr-ic">&#128260;</div><div class="tr-t">刷新数据</div><div class="tr-d">重新从GitHub加载</div></div>
+    </div>
+    <div class="info-p">
+      <b>&#128161; 使用说明</b><br>
+      添加基金后，需将 <code>holdings.json</code> 上传到 GitHub 仓库的 <code>data/</code> 目录，Actions 才会自动抓取该基金数据。
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="det-ov" id="det-ov">
+  <div class="det-sh" id="det-body"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG — 修改这里为你的 GitHub 仓库 raw 地址
+// ══════════════════════════════════════════════
+var REPO_RAW = 'https://raw.githubusercontent.com/YOUR_USERNAME/fund-tracker/main';
+// 例：'https://raw.githubusercontent.com/zhangsan/fund-tracker/main'
+
+// ══════════════════════════════════════════════
+
+var H = [];
+try { H = JSON.parse(localStorage.getItem('sg_v7') || '[]'); } catch(e) {}
+var FD = {};
+var plat = 'all', srt = 'list', eidx = -1;
+var aSeg = 'p', eSeg = 'p', aCh = '支付宝', eCh = '支付宝';
+var isSaving = false;
+
+function sv() { localStorage.setItem('sg_v7', JSON.stringify(H)); }
+
+// ── Load fund data from GitHub Pages ──
+async function loadRemoteData() {
+  if (REPO_RAW.includes('YOUR_USERNAME')) {
+    document.getElementById('setup-banner').style.display = 'block';
+    return;
+  }
+  try {
+    var url = REPO_RAW + '/data/funds.json?t=' + Date.now();
+    var r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    var data = await r.json();
+    if (data.funds) {
+      Object.assign(FD, data.funds);
+      var upd = document.getElementById('update-info');
+      if (data.updatedAt) {
+        var d = new Date(data.updatedAt);
+        upd.textContent = '数据更新于 ' + d.toLocaleString('zh', {timeZone:'Asia/Shanghai', hour12:false});
+      }
+    }
+  } catch(e) {
+    console.warn('Remote data load failed:', e.message);
+    var upd = document.getElementById('update-info');
+    upd.textContent = '⚠️ 数据加载失败，请检查仓库配置';
+  }
+}
+
+// ── Look up fund from cached FD ──
+function lookupCode(code) {
+  var d = FD[code];
+  if (d && (d.nav > 0 || d.estNav > 0)) return d;
+  return null;
+}
+
+// CALC
+function calc(h) {
+  var d = FD[h.code] || {};
+  var nav = d.estNav || d.nav || 0;
+  var chg = d.hasEst ? (d.estChg || 0) : (d.change || 0);
+  var sh = h.shares || 0, cp = h.costPerShare || nav || 1;
+  var cur = sh * nav, cv = sh * cp;
+  return {nav:nav, chg:chg, cur:cur, tp:cur*chg/100, tc:cur-cv, pct:cv>0?(cur-cv)/cv*100:0};
+}
+function f2(n){if(n==null||isNaN(n))return'--';return(n>=0?'+':'-')+Math.abs(n).toFixed(2);}
+function fp(n){if(n==null||isNaN(n))return'--%';return(n>=0?'+':'-')+Math.abs(n).toFixed(2)+'%';}
+function cc(n){return n>0?'up':n<0?'dn':'neu';}
+
+// RENDER
+function render() {
+  var list = H.slice();
+  if (plat !== 'all') list = list.filter(function(h){return (h.channel||'支付宝')===plat;});
+  if (srt==='today') list.sort(function(a,b){return calc(b).tp-calc(a).tp;});
+  if (srt==='chg')   list.sort(function(a,b){return ((FD[b.code]||{}).estChg||0)-((FD[a.code]||{}).estChg||0);});
+  if (srt==='total') list.sort(function(a,b){return calc(b).tc-calc(a).tc;});
+
+  var tv=0,tp=0,tc=0,cv=0;
+  H.forEach(function(h){var c=calc(h);tv+=c.cur;tp+=c.tp;tc+=c.tc;cv+=h.shares*(h.costPerShare||c.nav||1);});
+  document.getElementById('hv-t').textContent=tv.toFixed(2);
+  var te=document.getElementById('hv-tp');te.textContent=f2(tp);te.className='hchip-v '+cc(tp);
+  document.getElementById('hv-tpp').textContent=tv>0?fp(tp/tv*100):'+0.00%';
+  var ce=document.getElementById('hv-tc');ce.textContent=f2(tc);ce.className='hchip-v '+cc(tc);
+  document.getElementById('hv-tcp').textContent=cv>0?fp(tc/cv*100):'+0.00%';
+
+  var el=document.getElementById('fl');
+  if(!list.length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">&#128202;</div><div class="empty-t">还没有持仓</div><div class="empty-s">点击右上角「添加」开始追踪<br>数据由 GitHub Actions 自动更新</div></div>';
+    return;
+  }
+  el.innerHTML=list.map(function(h){
+    var ri=H.indexOf(h),d=FD[h.code]||{},c=calc(h);
+    var lc=c.tc>0?'cup':c.tc<0?'cdn':'';
+    var tagTxt=d.hasEst?'估值中':(d.nav?'已更新':'待同步');
+    var tagCls=d.hasEst?'est':(!d.nav?'ing':'');
+    var navTxt='净值('+(d.navDate||'--')+') '+(d.nav?d.nav.toFixed(4):'--');
+    if(d.hasEst&&d.estNav)navTxt+=' &middot; <span class="est">估值 '+d.estNav.toFixed(4)+'</span>';
+    return '<div class="fcard '+lc+'" onclick="openDet(\''+h.code+'\')">'
+      +'<div class="fc-hd"><div class="fc-name">'+(d.name||h.code)+'</div>'
+      +'<span class="fc-tag '+tagCls+'">'+tagTxt+'</span></div>'
+      +'<div class="fc-meta"><span>'+h.code+'</span><span class="ch">'+(h.channel||'支付宝')+'</span>'
+      +'<div class="fc-acts" onclick="event.stopPropagation()">'
+      +'<button class="fc-act" onclick="openEdit('+ri+')">&#9998;</button>'
+      +'<button class="fc-act del" onclick="qDel('+ri+',event)">&#10005;</button>'
+      +'</div></div>'
+      +'<div class="fc-stats">'
+      +'<div><div class="fcs-l">持有市值</div><div class="fcs-v">'+c.cur.toFixed(2)+'</div></div>'
+      +'<div><div class="fcs-l">今日盈亏</div><div class="fcs-v '+cc(c.tp)+'">'+f2(c.tp)+'</div></div>'
+      +'<div><div class="fcs-l">日涨幅</div><div class="fcs-v '+cc(c.chg)+'">'+fp(c.chg)+'</div></div>'
+      +'<div><div class="fcs-l">持有收益</div><div class="fcs-v '+cc(c.tc)+'">'+f2(c.tc)+'</div></div>'
+      +'</div>'
+      +'<div class="fc-nav">'+navTxt+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function setP(p,el){plat=p;document.querySelectorAll('.pill').forEach(function(t){t.classList.remove('on');});el.classList.add('on');render();}
+function setS(s,el){srt=s;document.querySelectorAll('.stab').forEach(function(t){t.classList.remove('on');});el.classList.add('on');render();}
+
+async function refreshAll(btn) {
+  if(btn){btn.classList.add('spin');btn.style.pointerEvents='none';}
+  await loadRemoteData();
+  render();
+  if(btn){btn.classList.remove('spin');btn.style.pointerEvents='';}
+}
+
+// ADD
+function openAdd(){
+  ['a-code','a-sh','a-amt'].forEach(function(id){document.getElementById(id).value='';});
+  setLkp('','输入6位基金代码，从已缓存数据中查询');
+  aCh='支付宝';
+  document.querySelectorAll('#a-pills .chb').forEach(function(b,i){b.classList.toggle('on',i===0);});
+  setSeg('a','p');
+  isSaving=false;
+  var sb=document.getElementById('a-save');sb.disabled=false;sb.textContent='确认保存';
+  document.getElementById('ov-add').classList.add('show');
+  setTimeout(function(){document.getElementById('a-code').focus();},300);
+}
+function closeAdd(){document.getElementById('ov-add').classList.remove('show');}
+
+function setLkp(state,msg){
+  var el=document.getElementById('a-lkp');
+  el.className='lkp'+(state==='ok'?' ok':state==='err'?' err':state==='ing'?' ing':'');
+  el.innerHTML=msg;
+}
+
+function onCodeIn(inp){
+  var code=inp.value.trim();
+  if(code.length<6){setLkp('','输入6位基金代码，从已缓存数据中查询');return;}
+  if(code.length===6){
+    var d=lookupCode(code);
+    if(d){
+      var msg='<b>'+(d.name||code)+'</b><br>'
+        +'<small>净值 '+(d.nav?d.nav.toFixed(4):'--')+' &middot; '+(d.navDate||'')
+        +(d.hasEst&&d.estNav?' &middot; 估值 '+d.estNav.toFixed(4):' &middot; 涨跌 '+fp(d.change))
+        +'</small>';
+      setLkp('ok',msg);
+    } else {
+      setLkp('ing','&#128197; 该基金暂无缓存数据。保存后需将 holdings.json 上传到 GitHub，等待 Actions 自动抓取数据（交易日每5分钟更新一次）。');
+    }
+  }
+}
+
+function setSeg(p,s){
+  if(p==='a')aSeg=s;else eSeg=s;
+  document.getElementById(p+'-sp').classList.toggle('on',s==='p');
+  document.getElementById(p+'-sc').classList.toggle('on',s==='c');
+  if(p==='a')document.getElementById('a-hint').textContent=s==='p'?'系统将根据当前净值自动反算成本单价':'输入买入时的成本单价（每份净值）';
+}
+function setCh(p,c,btn){
+  if(p==='a')aCh=c;else eCh=c;
+  document.querySelectorAll('#'+p+'-pills .chb').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+}
+
+function saveH(){
+  if(isSaving)return;
+  var code=document.getElementById('a-code').value.trim();
+  var shares=parseFloat(document.getElementById('a-sh').value);
+  var amt=parseFloat(document.getElementById('a-amt').value);
+  if(code.length!==6){alert('请输入正确的6位基金代码');return;}
+  if(!shares||shares<=0){alert('请输入持有份额');return;}
+  var d=FD[code]||{};
+  var nav=(d.estNav||d.nav)||1;
+  var cp=nav;
+  if(aSeg==='p'&&!isNaN(amt))cp=Math.max(0.0001,(shares*nav-amt)/shares);
+  if(aSeg==='c'&&!isNaN(amt)&&amt>0)cp=amt;
+  H.push({code:code,shares:shares,costPerShare:cp,channel:aCh});
+  sv();closeAdd();render();
+  // Prompt to sync holdings
+  if(confirm('基金已添加！\n\n需要将 holdings.json 上传到 GitHub 仓库，Actions 才会自动抓取数据。\n\n点确定下载 holdings.json，然后上传到仓库的 data/ 目录。')){
+    exportHoldings();
+  }
+}
+
+// EDIT
+function openEdit(idx){
+  eidx=idx;var h=H[idx],d=FD[h.code]||{},nav=d.estNav||d.nav||1;
+  document.getElementById('e-code').value=h.code;
+  document.getElementById('e-sh').value=h.shares;
+  document.getElementById('e-amt').value=((h.shares*nav)-(h.shares*(h.costPerShare||nav))).toFixed(2);
+  eCh=h.channel||'支付宝';
+  document.querySelectorAll('#e-pills .chb').forEach(function(b){b.classList.toggle('on',b.textContent===eCh);});
+  setSeg('e','p');
+  document.getElementById('ov-edit').classList.add('show');
+}
+function closeEdit(){document.getElementById('ov-edit').classList.remove('show');}
+function updateH(){
+  var h=H[eidx],sh=parseFloat(document.getElementById('e-sh').value);
+  var amt=parseFloat(document.getElementById('e-amt').value);
+  var nav=(FD[h.code]&&(FD[h.code].estNav||FD[h.code].nav))||1;
+  var cp=h.costPerShare||nav;
+  if(eSeg==='p'&&!isNaN(amt))cp=Math.max(0.0001,(sh*nav-amt)/sh);
+  if(eSeg==='c'&&!isNaN(amt)&&amt>0)cp=amt;
+  H[eidx]=Object.assign({},h,{shares:sh,costPerShare:cp,channel:eCh});
+  sv();closeEdit();render();
+}
+function delH(){if(confirm('确认删除？')){H.splice(eidx,1);sv();closeEdit();render();}}
+function qDel(idx,e){e.stopPropagation();if(confirm('确认删除？')){H.splice(idx,1);sv();render();}}
+
+// DETAIL
+function openDet(code){
+  var ov=document.getElementById('det-ov'),body=document.getElementById('det-body');
+  ov.classList.add('show');
+  var d=FD[code]||{},h=null;
+  for(var i=0;i<H.length;i++){if(H[i].code===code){h=H[i];break;}}
+  var c=h?calc(h):null;
+  var hist=d.history||[];
+
+  var html='<div class="sh-h"></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:20px 0 14px">'
+    +'<div><div style="font-size:17px;font-weight:700;margin-bottom:4px">'+(d.name||code)+'</div>'
+    +'<div style="font-size:12px;color:var(--l3)">'+code+(h?' &middot; '+(h.channel||''):'')+'</div></div>'
+    +'<button class="sh-x" onclick="closeDet()">&#10005;</button></div>';
+
+  if(c){
+    html+='<div class="sec">持仓数据</div><div class="g3">'
+      +'<div class="gc"><div class="gc-l">持有收益率</div><div class="gc-v '+cc(c.pct)+'">'+fp(c.pct)+'</div></div>'
+      +'<div class="gc"><div class="gc-l">持有收益</div><div class="gc-v '+cc(c.tc)+'">'+f2(c.tc)+'</div></div>'
+      +'<div class="gc"><div class="gc-l">持有市值</div><div class="gc-v">'+c.cur.toFixed(2)+'</div></div>'
+      +'</div>';
+  }
+
+  if(hist.length){
+    html+='<div class="sec">净值历史</div>'
+      +'<table class="htbl"><tr><th>日期</th><th>单位净值</th><th>涨跌幅</th></tr>';
+    hist.slice(0,10).forEach(function(row){
+      html+='<tr><td>'+row.date+'</td><td>'+(row.nav||0).toFixed(4)+'</td>'
+        +'<td class="'+cc(row.chg||0)+'">'+fp(row.chg||0)+'</td></tr>';
+    });
+    html+='</table>';
+  }
+
+  var inf=d.info||{};
+  if(d.nav||inf.fundType){
+    html+='<div class="sec">基金信息</div><div class="ig">';
+    if(d.nav)html+='<div class="ic2"><div class="ic2-l">最新净值</div><div class="ic2-v">'+d.nav.toFixed(4)+(d.navDate?' ('+d.navDate+')':'')+'</div></div>';
+    if(d.hasEst&&d.estNav)html+='<div class="ic2"><div class="ic2-l">实时估值</div><div class="ic2-v '+cc(d.estChg||0)+'">'+d.estNav.toFixed(4)+' '+fp(d.estChg||0)+'</div></div>';
+    if(inf.fundType)html+='<div class="ic2"><div class="ic2-l">基金类型</div><div class="ic2-v">'+inf.fundType+'</div></div>';
+    if(inf.manager)html+='<div class="ic2"><div class="ic2-l">基金经理</div><div class="ic2-v">'+inf.manager+'</div></div>';
+    if(inf.company)html+='<div class="ic2"><div class="ic2-l">管理公司</div><div class="ic2-v">'+inf.company+'</div></div>';
+    if(inf.manageFee)html+='<div class="ic2"><div class="ic2-l">管理费率</div><div class="ic2-v">'+inf.manageFee+'</div></div>';
+    html+='</div>';
+  }
+
+  html+='<button class="btn-close" onclick="closeDet()">关闭</button>';
+  body.innerHTML=html;
+}
+function closeDet(){document.getElementById('det-ov').classList.remove('show');}
+
+// TRANSFER
+function openTr(){document.getElementById('ov-tr').classList.add('show');}
+function closeTr(){document.getElementById('ov-tr').classList.remove('show');}
+function exportD(){
+  var b=new Blob([JSON.stringify({holdings:H,exportTime:new Date().toISOString()},null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='帅哥估值_'+new Date().toLocaleDateString('zh').replace(/\//g,'-')+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+}
+function exportHoldings(){
+  // Export just the codes array for GitHub Actions
+  var b=new Blob([JSON.stringify(H,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='holdings.json';
+  a.click();URL.revokeObjectURL(a.href);
+}
+function importD(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      var list=Array.isArray(data)?data:data.holdings;
+      if(!Array.isArray(list)){alert('格式不正确');return;}
+      if(confirm('导入 '+list.length+' 条持仓？（覆盖当前数据）')){H=list;sv();closeTr();render();}
+    }catch(err){alert('解析失败: '+err.message);}
+  };
+  r.readAsText(f);e.target.value='';
+}
+function bgC(e,id){if(e.target.id===id)document.getElementById(id).classList.remove('show');}
+
+// INIT
+async function init(){
+  render();
+  await loadRemoteData();
+  render();
+  // Auto reload every 5 min during trading hours
+  setInterval(async function(){
+    var cst=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Shanghai'}));
+    var day=cst.getDay(),m=cst.getHours()*60+cst.getMinutes();
+    if(day>0&&day<6&&H.length&&((m>=570&&m<=690)||(m>=780&&m<=900))){
+      await loadRemoteData();
+      render();
+    }
+  },5*60*1000);
+}
+init();
+</script>
+</body>
+</html>
